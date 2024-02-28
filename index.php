@@ -1,15 +1,16 @@
 <?php
+    // mySQLi OOP approach
     $servername = 'localhost';
     $username = 'relvyn';
     $password = 'test1234';
     $database = 'student_data';
     
     // create connection
-    $conn = mysqli_connect($servername, $username, $password, $database);
+    $conn = new mysqli($servername, $username, $password, $database);
 
     // check connection
-    if(!$conn){
-        echo 'Connection error: ' . mysqli_connect_error();
+    if($conn->connect_error){
+        echo 'Connection error: ' . $conn->connect_error;
     }
 
     $id = '';
@@ -25,13 +26,28 @@
 
     // get students
     if ($_SERVER["REQUEST_METHOD"] == "GET"){
-        $sql = 'SELECT * FROM student_details';
-        $result = mysqli_query($conn, $sql);
+        $sql = "";
+        
+        if(isset($_GET['id'])) {
+            $id = $_GET['id'];
+            switch ($id) {
+                case '':
+                    $sql = "SELECT * FROM student_details";
+                    break;
+                default:
+                    $sql = "SELECT * FROM student_details WHERE id = '$id'";
+                    break;
+            }
+        } else {
+            $sql = "SELECT * FROM student_details";
+        }
 
-        if (mysqli_num_rows($result) > 0){
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0){
             echo 'Students Data'. "\n";
 
-            while($row = mysqli_fetch_assoc($result)) {
+            while($row = $result->fetch_assoc()) {
                 echo 
                 "\n" .
                 ' Id: '. $row['id'] . "\n" .
@@ -46,9 +62,9 @@
             }
         }   else {
             echo 'No Student Data available';
-        }
+        } 
 
-        mysqli_close($conn);
+        $conn->close();
     }
     
 
@@ -67,13 +83,13 @@
         gender, course, year_level) VALUES ('$id', '$school_id', '$first_name', '$last_name', 
         '$date_of_birth', '$gender', '$course', '$year_level')";
 
-        if (mysqli_query($conn, $sql)){
+        if ($conn->query($sql) === TRUE){
             echo 'Student Data ADDED successfully!';
         } else {
-            echo "Error adding Student Data: " . mysqli_error($conn);
+            echo "Error adding Student Data: " . $conn->error;
         }
 
-        mysqli_close($conn);
+        $conn->close();
     }
 
 
@@ -94,10 +110,10 @@
         $sql = "UPDATE student_details SET school_id='$school_id', first_name='$first_name', last_name='$last_name', date_of_birth='$date_of_birth',
         gender='$gender', course='$course', year_level='$year_level' WHERE id='$id'";
 
-        if (mysqli_query($conn, $sql)) {
+        if ($conn->query($sql) === TRUE) {
             echo "Student Data UPDATED successfully!";
           } else {
-            echo "Error updating Student Data: " . mysqli_error($conn);
+            echo "Error updating Student Data: " . $conn->error;
           }
     }
 
@@ -110,13 +126,13 @@
 
         $sql = "DELETE FROM student_details WHERE id='$id'";
         
-        if (mysqli_query($conn, $sql)) {
+        if ($conn->query($sql) === TRUE) {
             echo "Student Data DELETED successfully!";
           } else {
-            echo "Error deleting Student Data: " . mysqli_error($conn);
+            echo "Error deleting Student Data: " . $conn->error;
           }
 
-        mysqli_close($conn);
+        $conn->close();
     }
 
     /* MISSING CODE 
